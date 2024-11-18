@@ -1,50 +1,76 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const ctx = document.getElementById('expenseChart').getContext('2d');
-    const expenseChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Daily Expenses (USD)',
-                data: [],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-                fill: false
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                },
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day'
-                    }
+// Set up the Chart.js chart
+const ctx = document.getElementById('spending-chart').getContext('2d');
+
+// Initialize empty data for the chart
+let chartData = {
+    labels: [], // Dates
+    datasets: [{
+        label: 'Quantia Gasta (EUR) x Tempo',
+        data: [], // Spending amounts
+        borderColor: 'rgb(75, 192, 192)',
+        fill: false,
+    }]
+};
+
+// Initialize the chart
+const spendingChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+        scales: {
+            x: {
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Data'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Quantia Gasta (EUR)'
                 }
             }
         }
-    });
+    }
+});
 
-    document.getElementById('expenseForm').addEventListener('submit', function(event) {
-        event.preventDefault();
+// Handle form submission
+document.getElementById('spending-form').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-        const date = document.getElementById('date').value;
-        const amount = parseFloat(document.getElementById('amount').value);
+    const dateInput = document.getElementById('date');
+    const amountInput = document.getElementById('amount');
 
-        if (date && !isNaN(amount)) {
-            const dateIndex = expenseChart.data.labels.indexOf(date);
-            if (dateIndex !== -1) {
-                expenseChart.data.datasets[0].data[dateIndex] += amount;
-            } else {
-                expenseChart.data.labels.push(date);
-                expenseChart.data.datasets[0].data.push(amount);
-            }
-            expenseChart.update();
-        }
+    // Get the values from the form
+    const date = dateInput.value;
+    const amount = parseFloat(amountInput.value);
 
-        document.getElementById('expenseForm').reset();
-    });
+    // Add the data to the chart
+    if (date && !isNaN(amount)) {
+        // Add the date and amount to the chart data
+        chartData.labels.push(date);
+        chartData.datasets[0].data.push(amount);
+
+        // Update the chart
+        spendingChart.update();
+
+        // Store the data in localStorage (optional)
+        localStorage.setItem('spendingData', JSON.stringify(chartData));
+
+        // Clear the form
+        dateInput.value = '';
+        amountInput.value = '';
+    } else {
+        alert("Por favor, introduza dados válidos.");
+    }
+});
+
+// Load saved data from localStorage (optional)
+window.addEventListener('load', function() {
+    const savedData = localStorage.getItem('spendingData');
+    if (savedData) {
+        chartData = JSON.parse(savedData);
+        spendingChart.update();
+    }
 });
